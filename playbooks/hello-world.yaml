@@ -1,0 +1,12 @@
+---
+- name: An example
+  hosts: 127.0.0.1
+  tasks:
+    - name: Create a file called '/tmp/testfile.txt' with some content.
+      copy:
+        content: some content
+        dest: /tmp/testfile.txt
+    - name: It should always fail.
+      copy:
+        src: /tmp/fileThatDoesNotExist
+        dest: /tmp/dest.txt

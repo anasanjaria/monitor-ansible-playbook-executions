@@ -1,0 +1,41 @@
+version: "3.3"
+services:
+  elasticsearch-1:
+    image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.1'
+    container_name: elasticsearch-1
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    environment:
+      - "discovery.type=single-node"
+  kibana:
+    image: 'docker.elastic.co/kibana/kibana:7.17.1'
+    container_name: kibana
+    environment:
+      - 'ELASTICSEARCH_HOSTS=http://elasticsearch-1:9200'
+    depends_on:
+      - elasticsearch-1
+    ports:
+      - '5601:5601'
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.17.1
+    depends_on:
+      - kibana
+    container_name: filebeat
+    volumes:
+      - ./filebeat.docker.yml:/usr/share/filebeat/filebeat.yml
+      - ./log:/var/logs/ansible/hosts:Z
+  test-ansible:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./playbooks:/code/playbooks:Z
+      - ./tmp:/tmp:Z
+      - ./log:/var/log:Z
+      - ./ansible.cfg:/code/ansible.cfg:ro
+    command: ["ansible-playbook", "/code/playbooks/hello-world.yaml"]
+    environment:
+      - ANSIBLE_CONFIG=/code/ansible.cfg
+      - ANSIBLE_LOG_FOLDER=/var/log
+
